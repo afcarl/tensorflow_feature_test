@@ -1,3 +1,4 @@
+import numpy as np
 import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
 
@@ -7,7 +8,7 @@ INNER_LOOP_MAX = 3
 inner = tf.placeholder("float32", [1, INNER_LOOP_MAX])
 outer = tf.placeholder("float32", [1, OUTER_LOOP_MAX])
 
-X = tf.Variable(tf.zeros([1], dtype="float32"))
+X = tf.Variable(np.float32(1.0))
 
 threshold = tf.constant(1)
 
@@ -46,7 +47,7 @@ def outer_body_func(outer_counter, outer_accum, outer_array):
     def false_func():
         return 3*outer_num
 
-    cond_num = control_flow_ops.cond(tf.less(outer_counter, threshold), true_func, false_func)
+    # cond_num = control_flow_ops.cond(tf.less(outer_counter, threshold), true_func, false_func)
     outer_accum = tf.add(outer_accum, inside_summed_products)
     # outer_accum = tf.add(outer_accum, cond_num)
     outer_counter += 1
@@ -63,14 +64,15 @@ _, value, _ = control_flow_ops.while_loop(
 loss = value * X
 
 grads = tf.gradients(loss, [X])
-# optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.1)
-# train_op = optimizer.minimize(loss)
+optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.1)
+train_op = optimizer.minimize(loss)
 
 sess = tf.Session()
 init = tf.initialize_all_variables()
 sess.run(init)
 
-# for i in xrange(1):
-#     feed_dict = {inner: [[1.0, 2.0, 3.0]], outer: [[4.0, 5.0, 6.0, 7.0, 8.0]]}
-#     print sess.run([train_op, loss], feed_dict=feed_dict)
-    # print sess.run([value, loss], feed_dict=feed_dict)
+for i in xrange(1):
+    feed_dict = {inner: [[1.0, 2.0, 3.0]], outer: [[4.0, 5.0, 6.0, 7.0, 8.0]]}
+    print sess.run([train_op, loss], feed_dict=feed_dict)
+    print sess.run(grads, feed_dict=feed_dict)
+  # print sess.run([value, loss], feed_dict=feed_dict)
